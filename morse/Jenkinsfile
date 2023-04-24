@@ -1,0 +1,47 @@
+pipeline {
+  agent {
+    node {
+      label 'macOS'
+    }
+
+  }
+
+  environment {
+        MODE_1 = 'textOnly'
+        MODE_2 = 'strict'
+        MODE_3 = 'relaxed'
+  }
+
+  stages {
+    stage('Build') {
+      steps {
+        sh './build.sh'
+      }
+    }
+
+    stage('Flash LPCXpresso') {
+      steps {
+        sh './flash.sh'
+      }
+    }
+
+    stage('RobotFramework Tests: Text Only Mode') {
+      steps {
+        sh 'robot --include ${MODE_1} --variable com_port_sender:${COM_PORT_SENDER}  --variable com_port_decoder:${COM_PORT_DECODER}  morse.robot'
+      }
+    }
+
+    stage('RobotFramework Tests: Exclude Strict Mode') {
+      steps {
+        sh 'robot --exclude ${MODE_2} --variable com_port_sender:${COM_PORT_SENDER}  --variable com_port_decoder:${COM_PORT_DECODER}  morse.robot'
+      }
+    }
+
+    stage('RobotFramework Status') {
+      steps {
+        robot '.'
+      }
+    }
+
+  }
+}
